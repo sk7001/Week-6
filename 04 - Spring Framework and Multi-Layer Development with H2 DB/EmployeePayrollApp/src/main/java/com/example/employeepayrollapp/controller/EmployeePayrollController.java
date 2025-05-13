@@ -1,8 +1,7 @@
 package com.example.employeepayrollapp.controller;
 
-import com.example.employeepayrollapp.dto.EmployeeDTO;
 import com.example.employeepayrollapp.model.Employee;
-import com.example.employeepayrollapp.service.EmployeeService;
+import com.example.employeepayrollapp.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,31 +13,37 @@ import java.util.Optional;
 public class EmployeePayrollController {
 
     @Autowired
-    private EmployeeService service;
+    private EmployeeRepository repository;
 
     @GetMapping("/")
     public List<Employee> getAllEmployees() {
-        return service.getAllEmployees();
+        return repository.findAll();
     }
 
     @GetMapping("/get/{id}")
     public Optional<Employee> getEmployeeById(@PathVariable Long id) {
-        return service.getEmployeeById(id);
+        return repository.findById(id);
     }
 
     @PostMapping("/create")
-    public Employee createEmployee(@RequestBody EmployeeDTO dto) {
-        return service.saveEmployee(dto);
+    public Employee createEmployee(@RequestBody Employee employee) {
+        return repository.save(employee);
     }
 
     @PutMapping("/update/{id}")
-    public Employee updateEmployee(@PathVariable Long id, @RequestBody EmployeeDTO dto) {
-        return service.updateEmployee(id, dto);
+    public Employee updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
+        return repository.findById(id)
+                .map(emp -> {
+                    emp.setName(employee.getName());
+                    emp.setSalary(employee.getSalary());
+                    return repository.save(emp);
+                })
+                .orElse(null);
     }
 
     @DeleteMapping("/delete/{id}")
     public String deleteEmployee(@PathVariable Long id) {
-        service.deleteEmployee(id);
+        repository.deleteById(id);
         return "Employee deleted successfully!";
     }
 }
